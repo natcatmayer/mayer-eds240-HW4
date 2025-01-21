@@ -1,0 +1,74 @@
+---
+title: "Western U.S. Water Rights"
+author: "Natalie Mayer"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(here)
+
+arizona <- read_csv(here("data", "arizona.csv"))
+california <- read_csv(here("data", "california.csv"))
+colorado <- read_csv(here("data", "colorado.csv"))
+idaho <- read_csv(here("data", "idaho.csv"))
+montana <- read_csv(here("data", "montana.csv"))
+nevada <- read_csv(here("data", "nevada.csv"))
+new_mexico <- read_csv(here("data", "new_mexico.csv"))
+oregon <- read_csv(here("data", "oregon.csv"))
+utah <- read_csv(here("data", "utah.csv"))
+washington <- read_csv(here("data", "washington.csv"))
+wyoming <- read_csv(here("data", "wyoming.csv"))
+```
+
+```{r}
+az <- arizona %>%
+  mutate(legal_framework = "Pure prior appropriation") %>%
+  mutate(waterRightID = factor(waterRightID))
+
+ca <- california %>%
+  mutate(legal_framework = "Riparian to Appropriation") %>%
+  mutate(waterRightID = factor(waterRightID))
+
+co <- colorado %>%
+  mutate(legal_framework = "Pure prior appropriation") %>%
+  mutate(waterRightID = factor(waterRightID))
+
+id <- idaho %>%
+  mutate(legal_framework = "Pure prior appropriation") %>%
+  mutate(waterRightID = factor(waterRightID))
+
+mt <- montana %>%
+  mutate(legal_framework = "Pure prior appropriation") %>%
+  mutate(waterRightID = factor(waterRightID))
+
+nv <- nevada %>%
+  mutate(legal_framework = "Pure prior appropriation") %>%
+  mutate(waterRightID = factor(waterRightID))
+
+nm <- new_mexico %>%
+  mutate(legal_framework = "Pure prior appropriation") %>%
+  mutate(waterRightID = factor(waterRightID))
+
+or <- oregon %>%
+  mutate(legal_framework = "Riparian to Appropriation") %>%
+  mutate(waterRightID = factor(waterRightID))
+
+ut <- utah %>%
+  mutate(legal_framework = "Pure prior appropriation") %>%
+  mutate(waterRightID = factor(waterRightID))
+
+wa <- washington %>%
+  mutate(legal_framework = "Riparian to Appropriation") %>%
+  mutate(waterRightID = factor(waterRightID))
+
+wy <- wyoming %>%
+  mutate(legal_framework = "Pure prior appropriation") %>%
+  mutate(waterRightID = factor(waterRightID))
+```
+
+```{r}
+western_states <- bind_rows(az, ca, co, id, mt, nv, nm, or, ut, wa, wy)
+```
+
