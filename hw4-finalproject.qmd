@@ -22,53 +22,101 @@ washington <- read_csv(here("data", "washington.csv"))
 wyoming <- read_csv(here("data", "wyoming.csv"))
 ```
 
+## Reclassify variable types and add legal framework column from ESM 225: Water Policy Lecture Notes and Readings
 ```{r}
 az <- arizona %>%
-  mutate(legal_framework = "Pure prior appropriation") %>%
-  mutate(waterRightID = factor(waterRightID))
+  mutate(legal_framework = "Prior Appropriation (But 40% of water comes from the Colorado River under a different system)") %>%
+  mutate(waterRightID = factor(waterRightID),
+         FIPS = factor(FIPS), 
+         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         origWaterUse = factor(origWaterUse), 
+         surBasinNum = factor(surBasinNum), 
+         grdBasinNum = factor(grdBasinNum))
 
 ca <- california %>%
-  mutate(legal_framework = "Riparian to Appropriation") %>%
-  mutate(waterRightID = factor(waterRightID))
+  mutate(legal_framework = "Hybrid: Riparian (Pre-1914) & Prior Appropriation (Post-1914)") %>%
+  mutate(waterRightID = factor(waterRightID), 
+         FIPS = factor(FIPS), 
+         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         origWaterUse = factor(origWaterUse), 
+         basinNum = factor(basinNum))
 
 co <- colorado %>%
-  mutate(legal_framework = "Pure prior appropriation") %>%
-  mutate(waterRightID = factor(waterRightID))
+  mutate(legal_framework = "Prior Appropriation (Issued and adjudicated by Water Courts)") %>%
+  mutate(waterRightID = factor(waterRightID),
+         FIPS = factor(FIPS), 
+         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         origWaterUse = factor(origWaterUse), 
+         basinNum = factor(basinNum))
 
 id <- idaho %>%
-  mutate(legal_framework = "Pure prior appropriation") %>%
-  mutate(waterRightID = factor(waterRightID))
+  mutate(legal_framework = "Prior Appropriation and Basin Management Agencies") %>%
+  mutate(waterRightID = factor(waterRightID), 
+         FIPS = factor(FIPS), 
+         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         origWaterUse = factor(origWaterUse), 
+         basinNum = factor(basinNum))
 
 mt <- montana %>%
-  mutate(legal_framework = "Pure prior appropriation") %>%
-  mutate(waterRightID = factor(waterRightID))
+  mutate(legal_framework = "Prior Appropriation (Adjudicated by State Water Court)") %>%
+  mutate(waterRightID = factor(waterRightID), 
+         FIPS = factor(FIPS), 
+         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         origWaterUse = factor(origWaterUse), 
+         basinNum = factor(basinNum))
 
 nv <- nevada %>%
-  mutate(legal_framework = "Pure prior appropriation") %>%
-  mutate(waterRightID = factor(waterRightID))
+  mutate(legal_framework = "Prior Appropriation (Administered by State Engineer/Division of Water Rights)") %>%
+  mutate(waterRightID = factor(waterRightID), 
+         FIPS = factor(FIPS), 
+         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         origWaterUse = factor(origWaterUse), 
+         basinNum = factor(basinNum))
 
 nm <- new_mexico %>%
-  mutate(legal_framework = "Pure prior appropriation") %>%
-  mutate(waterRightID = factor(waterRightID))
+  mutate(legal_framework = "Prior Appropriation (Administered by State Engineer/Division of Water Rights)") %>%
+  mutate(waterRightID = factor(waterRightID), 
+         FIPS = factor(FIPS), 
+         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         origWaterUse = factor(origWaterUse), 
+         basinNum = factor(basinNum))
 
 or <- oregon %>%
-  mutate(legal_framework = "Riparian to Appropriation") %>%
-  mutate(waterRightID = factor(waterRightID))
+  mutate(legal_framework = "Prior Appropriation (Strict 5 year 'use-it-or-lose-it' window)") %>%
+  mutate(waterRightID = factor(waterRightID), 
+         FIPS = factor(FIPS), 
+         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         origWaterUse = factor(origWaterUse), 
+         basinNum = factor(basinNum))
 
 ut <- utah %>%
-  mutate(legal_framework = "Pure prior appropriation") %>%
-  mutate(waterRightID = factor(waterRightID))
+  mutate(legal_framework = "Prior Appropriation (Administered by State Engineer/Division of Water Rights)") %>%
+  mutate(waterRightID = factor(waterRightID), 
+         FIPS = factor(FIPS), 
+         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         origWaterUse = factor(origWaterUse), 
+         basinNum = factor(basinNum))
 
 wa <- washington %>%
-  mutate(legal_framework = "Riparian to Appropriation") %>%
-  mutate(waterRightID = factor(waterRightID))
+  mutate(legal_framework = "Prior Appropriation and Water Resource Inventory Areas") %>%
+  mutate(waterRightID = factor(waterRightID), 
+         FIPS = factor(FIPS), 
+         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         origWaterUse = factor(origWaterUse), 
+         basinNum = factor(basinNum))
 
 wy <- wyoming %>%
-  mutate(legal_framework = "Pure prior appropriation") %>%
-  mutate(waterRightID = factor(waterRightID))
+  mutate(legal_framework = "Prior Appropriation (Administered by State Engineer/Division of Water Rights)") %>%
+  mutate(waterRightID = factor(waterRightID), 
+         FIPS = factor(FIPS), 
+         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         origWaterUse = factor(origWaterUse), 
+         basinNum = factor(basinNum))
 ```
 
+## Join data for all western states
 ```{r}
 western_states <- bind_rows(az, ca, co, id, mt, nv, nm, or, ut, wa, wy)
 ```
 
+# Exploratory Data Analysis 
