@@ -4,8 +4,16 @@ author: "Natalie Mayer"
 format: html
 editor: visual
 ---
+# Data Wrangling 
 
+## Load data and libraries
 ```{r}
+#| eval: true
+#| warning: false
+#| message: false
+#| code-fold: true
+
+
 library(tidyverse)
 library(here)
 
@@ -24,6 +32,12 @@ wyoming <- read_csv(here("data", "wyoming.csv"))
 
 ## Reclassify variable types and add legal framework column from ESM 225: Water Policy Lecture Notes and Readings
 ```{r}
+#| eval: true
+#| warning: false
+#| message: false
+#| code-fold: true
+
+
 az <- arizona %>%
   mutate(legal_framework = "Prior Appropriation (But 40% of water comes from the Colorado River under a different system)") %>%
   mutate(waterRightID = factor(waterRightID),
@@ -116,7 +130,116 @@ wy <- wyoming %>%
 
 ## Join data for all western states
 ```{r}
+#| eval: true
+#| warning: false
+#| message: false
+#| code-fold: true
+
+
 western_states <- bind_rows(az, ca, co, id, mt, nv, nm, or, ut, wa, wy)
 ```
 
 # Exploratory Data Analysis 
+
+## How have water rights changed over time in CA? 
+
+```{r}
+#| eval: true
+#| warning: false
+#| message: false
+#| code-fold: true
+
+
+library(stringr)
+
+ca_wr <- ca %>%
+  group_by(origWaterUse, waterUse) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  mutate(waterUse = str_to_title(waterUse))
+
+library(networkD3)
+
+# create links data frame
+links <- data.frame(ca_wr) %>%
+  mutate(source = origWaterUse, 
+         target = waterUse, 
+         value = cfs)
+
+# create node data frame
+nodes <- data.frame(
+  name=c(as.character(links$source), 
+  as.character(links$target)) %>% unique()
+)
+
+# reformat nodes so connection can be made using id
+links$IDsource <- match(links$source, nodes$name)-1 
+links$IDtarget <- match(links$target, nodes$name)-1
+
+# make the network 
+p <- sankeyNetwork(Links = links, Nodes = nodes,
+              Source = "IDsource", Target = "IDtarget",
+              Value = "value", NodeID = "name", 
+              sinksRight=FALSE)
+p
+
+```
+
+## How do Water Rights in CA compare to other Western States? 
+
+```{r}
+#| eval: true
+#| warning: false
+#| message: false
+#| code-fold: true
+
+ws <- western_states %>%
+  group_by(state, waterUse) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  drop_na()
+
+ggplot(data = ws, aes(x = waterUse, y = cfs)) + 
+  geom_col() + 
+  coord_flip() +
+  facet_wrap(~state, scales = "free_x") + 
+  theme(axis.text.x = element_text(angle = 45)) 
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
