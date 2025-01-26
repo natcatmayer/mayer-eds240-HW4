@@ -4,9 +4,11 @@ author: "Natalie Mayer"
 format: html
 editor: visual
 ---
-# Data Wrangling 
+
+# Data Wrangling
 
 ## Load data and libraries
+
 ```{r}
 #| eval: true
 #| warning: false
@@ -32,7 +34,8 @@ washington <- read_csv(here("data", "washington.csv"))
 wyoming <- read_csv(here("data", "wyoming.csv"))
 ```
 
-## Reclassify variable types and add legal framework column from ESM 225: Water Policy Lecture Notes and Readings
+## Reclassify variable types and add legal framework column
+
 ```{r}
 #| eval: true
 #| warning: false
@@ -175,6 +178,7 @@ wy <- wyoming %>%
 ```
 
 ## Join data for all western states
+
 ```{r}
 #| eval: true
 #| warning: false
@@ -186,11 +190,12 @@ western_states <- bind_rows(az, ca, co, id, mt, nv, nm, or, ut, wa, wy) %>%
   mutate(waterUse = str_to_title(waterUse))
 ```
 
-# Exploratory Data Analysis 
+# Exploratory Data Analysis
 
-## How have water rights changed over time in CA? 
+## Q1: How have water rights changed over time in CA?
 
-### Plot 1: Sankey Network 
+### Plot 1: Sankey Network
+
 ```{r}
 #| eval: true
 #| warning: false
@@ -231,7 +236,7 @@ p
 
 ```
 
-### Plot 2: 
+### Plot 2: Bar plots by water use
 
 ```{r}
 ca_total <- ca %>%
@@ -256,27 +261,14 @@ data.frame(waterUse = c("Domestic", "Industrial", "Environmental", "Irrigation",
   kable_classic()
 
 ```
-- The State Water Project began delivering water to So Cal in 1973. Interesting that the year prior saw an unprecedented surge in water rights to fish, and a few years later a maximum in water rights for industry, livestock, and environment.
-- 1970 California Endangered Species Act, 1973 Federal Endangered Species Act 
 
+-   The State Water Project began delivering water to So Cal in 1973. Interesting that the year prior saw an unprecedented surge in water rights to fish, and a few years later a maximum in water rights for industry, livestock, and environment.
+-   1970 California Endangered Species Act, 1973 Federal Endangered Species Act
 
-```{r}
-ca_use_prop <- ca %>%
-  group_by(waterUse, state) %>%
-  summarise(cfs = sum(CFS)) %>%
-  ungroup() %>%
-  mutate(percent = round(cfs / sum(cfs) * 100, 0)) %>%
-  select(waterUse, percent, state)
+## Q2: How do Water Rights in CA compare to other Western States?
 
-ca_use_prop %>%
-  kbl() %>%
-  kable_classic()
-```
+### Plot 3: Bar Plots
 
-
-## How do Water Rights in CA compare to other Western States? 
-
-### Plot 3: Bar Chart 
 ```{r}
 #| eval: true
 #| warning: false
@@ -296,7 +288,14 @@ ggplot(data = ws, aes(x = waterUse, y = cfs)) +
   theme(axis.text.x = element_text(angle = 45)) 
 ```
 
+### Plot 4: Geo Facet
+
 ```{r}
+#| eval: true
+#| warning: false
+#| message: false
+#| code-fold: true
+
 az_use_prop <- az %>%
   group_by(waterUse, state) %>%
   summarise(cfs = sum(CFS)) %>%
@@ -305,6 +304,13 @@ az_use_prop <- az %>%
   select(waterUse, percent, state) %>%
   drop_na(waterUse) %>%
   filter(waterUse != "other")
+
+ca_use_prop <- ca %>%
+  group_by(waterUse, state) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  mutate(percent = round(cfs / sum(cfs) * 100, 0)) %>%
+  select(waterUse, percent, state)
 
 co_use_prop <- co %>%
   group_by(waterUse, state) %>%
@@ -368,10 +374,7 @@ wy_use_prop <- wy %>%
   ungroup() %>%
   mutate(percent = round(cfs / sum(cfs) * 100, 0)) %>%
   select(waterUse, percent, state)
-```
 
-
-```{r}
 state_water_prop <- bind_rows(
   az_use_prop, 
   ca_use_prop,
@@ -399,62 +402,31 @@ state_water_max <- state_water_prop %>%
   group_by(state) %>%
   filter(percent == max(percent)) %>%
   ungroup() %>%
-  mutate(prop = percent / 100 ) %>%
-  select(-c(percent))
+  select(-c(percent)) %>%
+  mutate(waterUse = str_to_title(waterUse))
 
 
-wu_colors <- c("other" = "#cad2d9", 
-                 "irrigation" = "#417928", 
-                 "industrial" = "#393b3d", 
-                 "domestic" = "#075691", 
-                 "fish" = "#e27d12")
+wu_colors <- c("Other" = "#cad2d9", 
+                 "Irrigation" = "#96ceb4", 
+                 "Industrial" = "#ffcc5c", 
+                 "Domestic" = "#bae1ff", 
+                 "Fish" = "#ff6f69")
 
 
 ggplot(state_water_max) + 
   geom_rect(aes(xmin = 0, xmax = 1, 
                 ymin = 0, ymax = 1, 
-                alpha = prop, 
             fill = waterUse)) + 
   scale_fill_manual(values = wu_colors) +
   geom_text(aes(x = 0.5, y = 0.7, label = state),
-            #family = "",
+            family = "Comic Sans MS",
             face = "bold", 
-            size = 9, 
-            color = "black") + 
+            size = 3, 
+            color = "black", 
+            vjust = 2) + 
   facet_geo(~state, grid = custom_grid) + 
-  theme_void()
+  coord_fixed(ratio = 1) +
+  theme_void() + 
+    theme(strip.text = element_blank()) + 
+  labs(fill = "Water Use")
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
