@@ -16,6 +16,8 @@ editor: visual
 
 library(tidyverse)
 library(here)
+library(stringr)
+library(kableExtra)
 
 arizona <- read_csv(here("data", "arizona.csv"))
 california <- read_csv(here("data", "california.csv"))
@@ -42,90 +44,134 @@ az <- arizona %>%
   mutate(legal_framework = "Prior Appropriation (But 40% of water comes from the Colorado River under a different system)") %>%
   mutate(waterRightID = factor(waterRightID),
          FIPS = factor(FIPS), 
-         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         priorityDate = mdy(priorityDate),
+         priorityDate = if_else(year(priorityDate) > 2023, priorityDate - years(100),
+                                priorityDate),
          origWaterUse = factor(origWaterUse), 
          surBasinNum = factor(surBasinNum), 
-         grdBasinNum = factor(grdBasinNum))
+         grdBasinNum = factor(grdBasinNum)) %>%
+  filter(year(priorityDate) > 1925) %>%
+  filter(year(priorityDate) < 2000)
 
 ca <- california %>%
   mutate(legal_framework = "Hybrid: Riparian (Pre-1914) & Prior Appropriation (Post-1914)") %>%
   mutate(waterRightID = factor(waterRightID), 
          FIPS = factor(FIPS), 
-         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         priorityDate = mdy(priorityDate),
+         priorityDate = if_else(year(priorityDate) > 2023, priorityDate - years(100),
+                                priorityDate), 
          origWaterUse = factor(origWaterUse), 
-         basinNum = factor(basinNum))
+         basinNum = factor(basinNum)) %>%
+  filter(year(priorityDate) > 1925) %>%
+  filter(year(priorityDate) < 2000)
 
 co <- colorado %>%
   mutate(legal_framework = "Prior Appropriation (Issued and adjudicated by Water Courts)") %>%
   mutate(waterRightID = factor(waterRightID),
          FIPS = factor(FIPS), 
-         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         priorityDate = mdy(priorityDate),
+         priorityDate = if_else(year(priorityDate) > 2023, priorityDate - years(100),
+                                priorityDate),
          origWaterUse = factor(origWaterUse), 
-         basinNum = factor(basinNum))
+         basinNum = factor(basinNum)) %>%
+  filter(year(priorityDate) > 1925) %>%
+  filter(year(priorityDate) < 2000)
 
 id <- idaho %>%
   mutate(legal_framework = "Prior Appropriation and Basin Management Agencies") %>%
   mutate(waterRightID = factor(waterRightID), 
          FIPS = factor(FIPS), 
-         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         priorityDate = mdy(priorityDate),
+         priorityDate = if_else(year(priorityDate) > 2023, priorityDate - years(100),
+                                priorityDate),
          origWaterUse = factor(origWaterUse), 
-         basinNum = factor(basinNum))
+         basinNum = factor(basinNum)) %>%
+  filter(year(priorityDate) > 1925) %>%
+  filter(year(priorityDate) < 2000)
 
 mt <- montana %>%
   mutate(legal_framework = "Prior Appropriation (Adjudicated by State Water Court)") %>%
   mutate(waterRightID = factor(waterRightID), 
          FIPS = factor(FIPS), 
-         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         priorityDate = mdy(priorityDate),
+         priorityDate = if_else(year(priorityDate) > 2023, priorityDate - years(100),
+                                priorityDate),
          origWaterUse = factor(origWaterUse), 
-         basinNum = factor(basinNum))
+         basinNum = factor(basinNum)) %>%
+  filter(year(priorityDate) > 1925) %>%
+  filter(year(priorityDate) < 2000)
 
 nv <- nevada %>%
   mutate(legal_framework = "Prior Appropriation (Administered by State Engineer/Division of Water Rights)") %>%
   mutate(waterRightID = factor(waterRightID), 
-         FIPS = factor(FIPS), 
-         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         FIPS = factor(FIPS),
+         priorityDate = mdy(priorityDate),
+         priorityDate = if_else(year(priorityDate) > 2023, priorityDate - years(100),
+                                priorityDate), 
          origWaterUse = factor(origWaterUse), 
-         basinNum = factor(basinNum))
+         basinNum = factor(basinNum)) %>%
+  filter(year(priorityDate) > 1925) %>%
+  filter(year(priorityDate) < 2000)
 
 nm <- new_mexico %>%
   mutate(legal_framework = "Prior Appropriation (Administered by State Engineer/Division of Water Rights)") %>%
   mutate(waterRightID = factor(waterRightID), 
          FIPS = factor(FIPS), 
-         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         priorityDate = mdy(priorityDate),
+         priorityDate = if_else(year(priorityDate) > 2023, priorityDate - years(100),
+                                priorityDate), 
          origWaterUse = factor(origWaterUse), 
-         basinNum = factor(basinNum))
+         basinNum = factor(basinNum)) %>%
+  filter(year(priorityDate) > 1925) %>%
+  filter(year(priorityDate) < 2000)
 
 or <- oregon %>%
   mutate(legal_framework = "Prior Appropriation (Strict 5 year 'use-it-or-lose-it' window)") %>%
   mutate(waterRightID = factor(waterRightID), 
          FIPS = factor(FIPS), 
-         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         priorityDate = mdy(priorityDate),
+         priorityDate = if_else(year(priorityDate) > 2023, priorityDate - years(100),
+                                priorityDate),
          origWaterUse = factor(origWaterUse), 
-         basinNum = factor(basinNum))
+         basinNum = factor(basinNum)) %>%
+  filter(year(priorityDate) > 1925) %>%
+  filter(year(priorityDate) < 2000)
 
 ut <- utah %>%
   mutate(legal_framework = "Prior Appropriation (Administered by State Engineer/Division of Water Rights)") %>%
   mutate(waterRightID = factor(waterRightID), 
          FIPS = factor(FIPS), 
-         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         priorityDate = mdy(priorityDate),
+         priorityDate = if_else(year(priorityDate) > 2023, priorityDate - years(100),
+                                priorityDate),
          origWaterUse = factor(origWaterUse), 
-         basinNum = factor(basinNum))
+         basinNum = factor(basinNum)) %>%
+  filter(year(priorityDate) > 1925) %>%
+  filter(year(priorityDate) < 2000)
 
 wa <- washington %>%
   mutate(legal_framework = "Prior Appropriation and Water Resource Inventory Areas") %>%
   mutate(waterRightID = factor(waterRightID), 
          FIPS = factor(FIPS), 
-         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         priorityDate = mdy(priorityDate),
+         priorityDate = if_else(year(priorityDate) > 2023, priorityDate - years(100),
+                                priorityDate), 
          origWaterUse = factor(origWaterUse), 
-         basinNum = factor(basinNum))
+         basinNum = factor(basinNum)) %>%
+  filter(year(priorityDate) > 1925) %>%
+  filter(year(priorityDate) < 2000)
 
 wy <- wyoming %>%
   mutate(legal_framework = "Prior Appropriation (Administered by State Engineer/Division of Water Rights)") %>%
   mutate(waterRightID = factor(waterRightID), 
          FIPS = factor(FIPS), 
-         priorityDate = as.Date(priorityDate, format = "%m/%d/%y"), 
+         priorityDate = mdy(priorityDate),
+         priorityDate = if_else(year(priorityDate) > 2023, priorityDate - years(100),
+                                priorityDate),
          origWaterUse = factor(origWaterUse), 
-         basinNum = factor(basinNum))
+         basinNum = factor(basinNum)) %>%
+  filter(year(priorityDate) > 1925) %>%
+  filter(year(priorityDate) < 2000)
 ```
 
 ## Join data for all western states
@@ -136,21 +182,21 @@ wy <- wyoming %>%
 #| code-fold: true
 
 
-western_states <- bind_rows(az, ca, co, id, mt, nv, nm, or, ut, wa, wy)
+western_states <- bind_rows(az, ca, co, id, mt, nv, nm, or, ut, wa, wy) %>%
+  mutate(waterUse = str_to_title(waterUse))
 ```
 
 # Exploratory Data Analysis 
 
 ## How have water rights changed over time in CA? 
 
+### Plot 1: Sankey Network 
 ```{r}
 #| eval: true
 #| warning: false
 #| message: false
 #| code-fold: true
 
-
-library(stringr)
 
 ca_wr <- ca %>%
   group_by(origWaterUse, waterUse) %>%
@@ -185,8 +231,52 @@ p
 
 ```
 
+### Plot 2: 
+
+```{r}
+ca_total <- ca %>%
+  mutate(year = year(priorityDate)) %>%
+  group_by(year, waterUse) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  filter(waterUse != "other")
+
+ggplot(ca_total, aes(x = year, y = cfs, fill = waterUse)) + 
+  geom_col() + 
+  facet_wrap(~waterUse, scales = "free_y") + 
+  theme_minimal()
+```
+
+```{r}
+# Table of maximum year for water use 
+
+data.frame(waterUse = c("Domestic", "Industrial", "Environmental", "Irrigation", "Livestock", "Fish"), 
+       year = c("1927", "1977", "1977", "1927", "1981", "1972")) %>%
+  kbl() %>%
+  kable_classic()
+
+```
+- The State Water Project began delivering water to So Cal in 1973. Interesting that the year prior saw an unprecedented surge in water rights to fish, and a few years later a maximum in water rights for industry, livestock, and environment.
+- 1970 California Endangered Species Act, 1973 Federal Endangered Species Act 
+
+
+```{r}
+ca_use_prop <- ca %>%
+  group_by(waterUse, state) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  mutate(percent = round(cfs / sum(cfs) * 100, 0)) %>%
+  select(waterUse, percent, state)
+
+ca_use_prop %>%
+  kbl() %>%
+  kable_classic()
+```
+
+
 ## How do Water Rights in CA compare to other Western States? 
 
+### Plot 3: Bar Chart 
 ```{r}
 #| eval: true
 #| warning: false
@@ -206,9 +296,134 @@ ggplot(data = ws, aes(x = waterUse, y = cfs)) +
   theme(axis.text.x = element_text(angle = 45)) 
 ```
 
+```{r}
+az_use_prop <- az %>%
+  group_by(waterUse, state) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  mutate(percent = round(cfs / sum(cfs) * 100, 0)) %>%
+  select(waterUse, percent, state) %>%
+  drop_na(waterUse) %>%
+  filter(waterUse != "other")
+
+co_use_prop <- co %>%
+  group_by(waterUse, state) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  mutate(percent = round(cfs / sum(cfs) * 100, 0)) %>%
+  select(waterUse, percent, state)
+
+id_use_prop <- id %>%
+  group_by(waterUse, state) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  mutate(percent = round(cfs / sum(cfs) * 100, 0)) %>%
+  select(waterUse, percent, state)
+
+mt_use_prop <- mt %>%
+  group_by(waterUse, state) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  mutate(percent = round(cfs / sum(cfs) * 100, 0)) %>%
+  select(waterUse, percent, state)
+
+nv_use_prop <- nv %>%
+  group_by(waterUse, state) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  mutate(percent = round(cfs / sum(cfs) * 100, 0)) %>%
+  select(waterUse, percent, state)
+
+nm_use_prop <- nm %>%
+  group_by(waterUse, state) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  mutate(percent = round(cfs / sum(cfs) * 100, 0)) %>%
+  select(waterUse, percent, state)
+
+or_use_prop <- or %>%
+  group_by(waterUse, state) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  mutate(percent = round(cfs / sum(cfs) * 100, 0)) %>%
+  select(waterUse, percent, state)
+
+ut_use_prop <- ut %>%
+  group_by(waterUse, state) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  mutate(percent = round(cfs / sum(cfs) * 100, 0)) %>%
+  select(waterUse, percent, state)
+
+wa_use_prop <- wa %>%
+  group_by(waterUse, state) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  mutate(percent = round(cfs / sum(cfs) * 100, 0)) %>%
+  select(waterUse, percent, state)
+
+wy_use_prop <- wy %>%
+  group_by(waterUse, state) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  mutate(percent = round(cfs / sum(cfs) * 100, 0)) %>%
+  select(waterUse, percent, state)
+```
 
 
+```{r}
+state_water_prop <- bind_rows(
+  az_use_prop, 
+  ca_use_prop,
+  co_use_prop,
+  id_use_prop,
+  mt_use_prop,
+  nv_use_prop,
+  nm_use_prop,
+  or_use_prop,
+  ut_use_prop,
+  wa_use_prop,
+  wy_use_prop
+)
+```
 
+```{r}
+library(geofacet)
+
+custom_grid <- data.frame(us_state_grid1) %>%
+  filter(name %in% c("Arizona", "California", "Colorado", "Idaho", 
+                    "Montana", "Nevada", "New Mexico", "Oregon", 
+                    "Utah", "Washington", "Wyoming"))
+
+state_water_max <- state_water_prop %>%
+  group_by(state) %>%
+  filter(percent == max(percent)) %>%
+  ungroup() %>%
+  mutate(prop = percent / 100 ) %>%
+  select(-c(percent))
+
+
+wu_colors <- c("other" = "#cad2d9", 
+                 "irrigation" = "#417928", 
+                 "industrial" = "#393b3d", 
+                 "domestic" = "#075691", 
+                 "fish" = "#e27d12")
+
+
+ggplot(state_water_max) + 
+  geom_rect(aes(xmin = 0, xmax = 1, 
+                ymin = 0, ymax = 1, 
+                alpha = prop, 
+            fill = waterUse)) + 
+  scale_fill_manual(values = wu_colors) +
+  geom_text(aes(x = 0.5, y = 0.7, label = state),
+            #family = "",
+            face = "bold", 
+            size = 9, 
+            color = "black") + 
+  facet_geo(~state, grid = custom_grid) + 
+  theme_void()
+```
 
 
 
