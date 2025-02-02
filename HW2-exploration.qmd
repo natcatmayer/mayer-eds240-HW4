@@ -1,11 +1,14 @@
 ---
-title: "Western U.S. Water Rights"
+title: "Homwework #2 Part 2"
 author: "Natalie Mayer"
-format: html
+format: 
+  html:
+    embed-resources: true
+    toc: true
 editor: visual
 ---
 
-# Data Wrangling
+# 2b. Import & wrangle data, then create exploratory data viz
 
 ## Load data and libraries
 
@@ -190,11 +193,11 @@ western_states <- bind_rows(az, ca, co, id, mt, nv, nm, or, ut, wa, wy) %>%
   mutate(waterUse = str_to_title(waterUse))
 ```
 
-# Exploratory Data Analysis
+## Exploratory Data Analysis
 
-## Q1: How have water rights changed over time in CA?
+### Q1: How have water rights changed over time in CA?
 
-### Plot 1: Sankey Network
+#### Plot 1: Sankey Network
 
 ```{r}
 #| eval: true
@@ -236,9 +239,14 @@ p
 
 ```
 
-### Plot 2: Bar plots by water use
+#### Plot 2: Bar plots by water use
 
 ```{r}
+#| eval: true
+#| warning: false
+#| message: false
+#| code-fold: true
+
 ca_total <- ca %>%
   mutate(year = year(priorityDate)) %>%
   group_by(year, waterUse) %>%
@@ -253,6 +261,11 @@ ggplot(ca_total, aes(x = year, y = cfs, fill = waterUse)) +
 ```
 
 ```{r}
+#| eval: true
+#| warning: false
+#| message: false
+#| code-fold: true
+
 # Table of maximum year for water use 
 
 data.frame(waterUse = c("Domestic", "Industrial", "Environmental", "Irrigation", "Livestock", "Fish"), 
@@ -265,9 +278,9 @@ data.frame(waterUse = c("Domestic", "Industrial", "Environmental", "Irrigation",
 -   The State Water Project began delivering water to So Cal in 1973. Interesting that the year prior saw an unprecedented surge in water rights to fish, and a few years later a maximum in water rights for industry, livestock, and environment.
 -   1970 California Endangered Species Act, 1973 Federal Endangered Species Act
 
-## Q2: How do Water Rights in CA compare to other Western States?
+### Q2: How do Water Rights in CA compare to other Western States?
 
-### Plot 3: Bar Plots
+#### Plot 3: Bar Plots
 
 ```{r}
 #| eval: true
@@ -288,7 +301,7 @@ ggplot(data = ws, aes(x = waterUse, y = cfs)) +
   theme(axis.text.x = element_text(angle = 45)) 
 ```
 
-### Plot 4: Geo Facet
+#### Plot 4: Geo Facet of majority water use by state 
 
 ```{r}
 #| eval: true
@@ -391,6 +404,11 @@ state_water_prop <- bind_rows(
 ```
 
 ```{r}
+#| eval: true
+#| warning: false
+#| message: false
+#| code-fold: true
+
 library(geofacet)
 
 custom_grid <- data.frame(us_state_grid1) %>%
@@ -430,3 +448,203 @@ ggplot(state_water_max) +
     theme(strip.text = element_blank()) + 
   labs(fill = "Water Use")
 ```
+
+#### Plot 5: Geo Facet of total volume of water rights by state 
+```{r}
+#| eval: true
+#| warning: false
+#| message: false
+#| code-fold: true
+
+state_vol <- western_states %>%
+  group_by(state) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  mutate(opacity = cfs/max(cfs))
+
+ggplot(state_vol) + 
+  geom_rect(aes(xmin = 0, xmax = 1, 
+                ymin = 0, ymax = 1, 
+                alpha = opacity), 
+            fill = "#078abb") + 
+  geom_text(aes(x = 0.5, y = 0.7, label = state),
+            family = "Comic Sans MS",
+            face = "bold", 
+            size = 3, 
+            color = "black", 
+            vjust = 2) + 
+  facet_geo(~state, grid = custom_grid) + 
+  coord_fixed(ratio = 1) +
+  theme_void() + 
+    theme(strip.text = element_blank())
+
+```
+
+#### Plot 6: Geo Facet of proportion of irrigation water rights for each state
+```{r}
+#| eval: true
+#| warning: false
+#| message: false
+#| code-fold: true
+
+# What proportion of each states' water rights are apportioned for irrigation? 
+
+irrigation_prop <- western_states %>%
+  group_by(state, waterUse) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  group_by(state) %>%
+  mutate(total_cfs = sum(cfs)) %>%
+  ungroup() %>%
+  filter(waterUse == "Irrigation") %>%
+  mutate(irrig_prop = cfs / total_cfs)
+
+ggplot(irrigation_prop) + 
+  geom_rect(aes(xmin = 0, xmax = 1, 
+                ymin = 0, ymax = 1, 
+                alpha = irrig_prop), 
+            fill = "#078abb") + 
+  geom_text(aes(x = 0.5, y = 0.7, label = state),
+            family = "Comic Sans MS",
+            face = "bold", 
+            size = 3, 
+            color = "black", 
+            vjust = 2) + 
+  facet_geo(~state, grid = custom_grid) + 
+  coord_fixed(ratio = 1) +
+  theme_void() + 
+    theme(strip.text = element_blank())
+```
+#### Plot 7: Geo Facet of proportion of fish water rights for each state
+
+```{r}
+#| eval: true
+#| warning: false
+#| message: false
+#| code-fold: true
+
+# What proportion of each states' water rights are apportioned for fish? 
+
+fish_prop_df <- western_states %>%
+  group_by(state, waterUse) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  group_by(state) %>%
+  mutate(total_cfs = sum(cfs)) %>%
+  ungroup() %>%
+  filter(waterUse == "Fish") %>%
+  mutate(fish_prop = cfs / total_cfs)
+
+ggplot(fish_prop_df) + 
+  geom_rect(aes(xmin = 0, xmax = 1, 
+                ymin = 0, ymax = 1, 
+                alpha = fish_prop), 
+            fill = "green4") + 
+  geom_text(aes(x = 0.5, y = 0.7, label = state),
+            family = "Comic Sans MS",
+            face = "bold", 
+            size = 3, 
+            color = "black", 
+            vjust = 2) + 
+  facet_geo(~state, grid = custom_grid) + 
+  coord_fixed(ratio = 1) +
+  theme_void() + 
+    theme(strip.text = element_blank())
+```
+
+#### Plot 8: Geo Facet of proportion of the environment water rights for each state
+```{r}
+#| eval: true
+#| warning: false
+#| message: false
+#| code-fold: true
+
+# What proportion of each states' water rights are apportioned for the environment? 
+
+env_prop_df <- western_states %>%
+  group_by(state, waterUse) %>%
+  summarise(cfs = sum(CFS)) %>%
+  ungroup() %>%
+  group_by(state) %>%
+  mutate(total_cfs = sum(cfs)) %>%
+  ungroup() %>%
+  filter(waterUse == "Environmental") %>%
+  mutate(env_prop = cfs / total_cfs)
+
+ggplot(env_prop_df) + 
+  geom_rect(aes(xmin = 0, xmax = 1, 
+                ymin = 0, ymax = 1, 
+                alpha = env_prop), 
+            fill = "blue") + 
+  geom_text(aes(x = 0.5, y = 0.7, label = state),
+            family = "Comic Sans MS",
+            face = "bold", 
+            size = 3, 
+            color = "black", 
+            vjust = 2) + 
+  facet_geo(~state, grid = custom_grid) + 
+  coord_fixed(ratio = 1) +
+  theme_void() + 
+    theme(strip.text = element_blank())
+```
+
+# 2c. Answer Questions 
+
+## 1) What have you learned about your data? Have any potentially interesting patterns emerged? 
+Plot 1: The Sankey network diagram revealed that designated water use in California have not changed much from their original use, except for changes in name. For example, water rights once designated for "Power" are now designated for "Industrial". This diagram also shows the relative amount of water rights by CFS for each designated use: Industrial has the most cfs of water rights compared to other uses like domestic, environmental, fish or livestock. 
+
+Plot 2: The faceted bar plots of water use in California show that in the early 1900s when water rights in the west were relatively new, most were designated for domestic and irrigation use. It wasn't until later in the 20th century that water rights started being designated for the environment and fish. This timing is consistent with the wave of environmental policies established in the U.S. in the 1960s/1970s. 1981 saw a lot of water rights designated for livestock with few rights designated for that use prior or afterwards. This is interesting because it may suggest that CA land suitable for livestock is saturated and the meat industry in CA will not expand much beyond 1980 levels.
+
+Plot 3: Industrial use is the most common designated use of water rights by volume in states: California, Arizona, Washington, and Idaho. Livestock is most common in Arizona and is relatively rare in other states. Water right for domestic use are much higher in California and New Mexico than in other western states. 
+
+Plot 4: This was so much fun to make. This plot shows the majority water use in each state. Interesting that so many western states had industrial as their most common use of water rights! Not surprising that Colorado's water irrigation, and I am curious what "Other" means in Nevada, Wyoming, and Utah. 
+
+Plot 5: Surprising that Arizona had the most cfs of water rights among all the states, because their rights to the Colorado River water are junior to all the other western states. I need to look into this data more and find out if it is only considering inner-state water rights or also trans-boundary water rights as well. 
+
+Plot 6: Colorado, followed by New Mexico and Nevada, use the highest proportion of their water rights for irrigation. Makes me wonder if all of the groundwater rights are included in this dataset, because I would expect California to be higher. 
+
+Plot 7: Utah and Arizona have no water rights designated for fish! Interesting that Montana and Oregon have such high proportions of water rights designated for fish. It makes sense because nationally important fisheries are located in both states, but I would expect to see the same in Washington and/or Idaho? 
+
+Plot 8: The range of proportions of water rights designated to environment in each state is relatively low overall. 
+
+## 2) In HW #1, you outlined some questions that you wanted to answer using these data. Have you made any strides towards answering those questions? If yes, how so? If no, what next steps do you need to take?
+
+I don't know that "How have water rights changed over time in CA?" is still a relevant question that can be answered using this data. I think something that would be more interesting is aggregating the total amount of cfs added to the water rights system each year in the state, so we could see the total cfs apportioned in this year. After this, I could perhaps find another data set with information about how much water is present in CA in a given year. A comparison between apportioned water rights and actual available water would be able to show if CA water is over-allocated and to what extent. It could also be interesting to see how the irrigation/domestic ratio changes overtime in California.
+
+My second research question, "How do water rights in CA compare to other western states?" may be too broad. I think I should choose one designated use (irrigation, industry, fish, environment, or domestic) to focus on and compare across states.
+
+## 3) What challenges do you foresee encountering with your data? These can be data wrangling and/or visualization challenges
+
+One challenge I faced while wrangling the data is the date format for priorityDate was "%m/%d/%y". So there is no way for me to know if dates ending in 15-24 represent water rights from 1915 or 2015, etc. To address this issue, I just removed all data before 1924 and after 2000. Similarly, many of the original water uses are defined as codes that I am having trouble finding definitions for online. Fortunately, that isn't really an issue for California, but it limits my ability to assess changes in water rights trends overtime in other states. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
