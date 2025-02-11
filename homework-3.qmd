@@ -23,7 +23,7 @@ ca_runoff_clean <- ca_runoff %>%
   clean_names() %>%
   mutate(date = ymd(paste0(category, "-01-01"))) %>%
   mutate(year = year(date)) %>%
-  select(year, annual_runoff)        
+  select(year, annual_runoff)
 
 ```
 
@@ -45,7 +45,114 @@ ca_rights_agg <- ca_rights %>%
 ```
 
 ```{r}
-ggplot(ca_rights_agg, aes(x = year, y = agg_cfs)) + 
-  geom_col()
+ggplot() + 
+  geom_area(data = ca_runoff_clean,
+            aes(x = year, 
+                y = annual_runoff), 
+            fill = "lightblue") + 
+  theme_classic() + 
+  scale_y_continuous(expand = c(0,0)) + 
+  scale_x_continuous(expand = c(0,0))
 ```
+
+
+```{r}
+water_use_order <- c("Other", 
+                     "Irrigation", 
+                     "Livestock", 
+                     "Domestic",
+                     "Industrial", 
+                     "Fish", 
+                     "Environmental")
+
+ca_rights_agg_use <- ca_rights %>%
+  clean_names() %>%
+  select(priority_date, cfs, water_use) %>%
+  mutate(date = mdy(priority_date)) %>%
+  mutate(date = if_else(year(date) > 2023, date - years(100), date)) %>%
+  mutate(year = year(date))%>%
+  filter(year > 1924) %>%
+  filter(year < 2000) %>%
+  select(year, cfs, water_use) %>%
+  group_by(year, water_use) %>%
+  summarise(cfs = sum(cfs)) %>%
+  ungroup() %>%
+  arrange(year) %>% 
+  mutate(agg_cfs = cumsum(cfs)) %>%
+  group_by(year) %>%
+  mutate(cfs_prop = agg_cfs / sum(agg_cfs) * 100) %>%
+  mutate(sum = sum(cfs_prop)) %>%
+  ungroup() %>%
+  mutate(date = ymd(paste0(year, "-01-01"))) %>%
+  select(date, cfs_prop, water_use, sum) %>%
+  mutate(water_use = stringr::str_to_title(water_use)) %>%
+  mutate(water_use = factor(water_use, levels = water_use_order))
+  
+
+water_use_pal <- c("Domestic" = "red", 
+                   "Environmental" = "blue", 
+                   "Fish" = "lightblue", 
+                   "Industrial" = "gray2", 
+                   "Irrigation" = "green2", 
+                   "Livestock" = "tan2", 
+                   "Other" = "lightgray")
+
+
+ggplot(data = ca_rights_agg_use, 
+       aes(x = date, y = cfs_prop, fill = water_use)) + 
+  geom_area(position = "fill") + 
+  scale_fill_manual(values = water_use_pal) + 
+  theme_minimal() + 
+  scale_x_date(date_labels = "%Y", breaks = "5 year") +
+  labs(title = "proportions of designated use of total water rights")
+```
+
+
+```{r}
+water_use_order_yrly <- c("Nature", 
+                          "Agriculture",
+                          "Irrigation",
+                          "Domestic")
+
+water_use_pal_yrly <- c("Domestic" = "red", 
+                   "Nature" = "lightblue", 
+                   "Industrial" = "gray2", 
+                   "Agriculture" = "tan2")
+
+ca_rights_yrly_use <- ca_rights %>%
+  clean_names() %>%
+  select(priority_date, cfs, water_use) %>%
+  mutate(date = mdy(priority_date)) %>%
+  mutate(date = if_else(year(date) > 2023, date - years(100), date)) %>%
+  mutate(year = year(date))%>%
+  filter(year > 1924) %>%
+  filter(year < 2000) %>%
+  select(year, cfs, water_use) %>%
+  group_by(year, water_use) %>%
+  summarise(cfs = sum(cfs)) %>%
+  mutate(cfs_prop = cfs / sum(cfs) * 100) %>%
+  mutate(sum = sum(cfs_prop)) %>%
+  ungroup() %>%
+  mutate(date = ymd(paste0(year, "-01-01"))) %>%
+  select(date, cfs_prop, water_use, sum) %>%
+  mutate(water_use = stringr::str_to_title(water_use)) %>%
+  mutate(water_use_comb = case_when(
+    water_use %in% c("Environmental", "Fish") ~ "Nature", 
+    water_use %in% c("Irrigation", "Livestock") ~ "Agriculture",
+    water_use == "Domestic" ~ "Domestic", 
+    water_use %in% c("Industrial") ~ "Industrial"
+  )) %>%
+  filter(water_use_comb != "Other") %>%
+  mutate(water_use_comb = factor(water_use_comb, levels = water_use_order_yrly)) 
+
+ggplot(data = ca_rights_yrly_use, 
+       aes(x = date, y = cfs_prop, fill = water_use_comb)) + 
+  geom_area(position = "fill") + 
+  scale_fill_manual(values = water_use_pal_yrly) + 
+  theme_minimal() + 
+  scale_x_date(date_labels = "%Y", breaks = "5 year") +
+  labs(title = "proportions of designated use of new water rights each year")
+```
+
+
 
