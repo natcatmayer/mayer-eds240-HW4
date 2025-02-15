@@ -10,49 +10,27 @@ library(tidyverse)
 library(here)
 library(janitor)
 library(lubridate)
+library(stringr)
 
 ca_rights <- read_csv(here("data", "california.csv"))
 
-# https://ca.water.usgs.gov/california-drought/california-drought-runoff.html
-ca_runoff <- read_csv(here("data", "annual-california-runoff.csv"))
-```
-
-```{r}
-# cleaning runoff data 
-ca_runoff_clean <- ca_runoff %>%
-  clean_names() %>%
-  mutate(date = ymd(paste0(category, "-01-01"))) %>%
-  mutate(year = year(date)) %>%
-  select(year, annual_runoff)
-
-```
-
-```{r}
-ggplot() + 
-  geom_area(data = ca_runoff_clean,
-            aes(x = year, 
-                y = annual_runoff), 
-            fill = "lightblue") + 
-  theme_classic() + 
-  scale_y_continuous(expand = c(0,0)) + 
-  scale_x_continuous(expand = c(0,0))
 ```
 
 
 ```{r}
-orig_water_use_pal <- c("Domestic" = "red", 
-                   "Nature" = "lightblue", 
+water_use_pal <- c("Domestic" = "red", 
+                   "Environment" = "lightblue", 
                    "Industrial" = "gray2", 
                    "Agriculture" = "tan2")
 
 desired_order <- c("Industrial",
                    "Domestic", 
                    "Agriculture", 
-                   "Nature")
+                   "Environment")
 
-ca_rights_orig_use <- ca_rights %>%
+ca_rights_use <- ca_rights %>%
   clean_names() %>%
-  select(priority_date, cfs, orig_water_use) %>%
+  select(priority_date, cfs, water_use) %>%
   mutate(date = mdy(priority_date)) %>%
   mutate(date = if_else(year(date) > 2023, date - years(100), date)) %>%
   mutate(year = year(date))%>%
@@ -67,33 +45,34 @@ ca_rights_orig_use <- ca_rights %>%
     year %in% c(1980:1989) ~ "1980s",
     year %in% c(1990:1999) ~ "1990s"
   )) %>%
-  select(decade, cfs, orig_water_use) %>%
-  group_by(decade, orig_water_use) %>%
+  select(decade, cfs, water_use) %>%
+  group_by(decade, water_use) %>%
   summarise(cfs = sum(cfs)) %>%
   ungroup() %>%
-  filter(orig_water_use != "Other") %>%
-  mutate(orig_water_use = case_when(
-    orig_water_use %in% c("Stockwatering", "Irrigation", "Dust Control", "Frost Protection", "Milling") ~ "Agriculture", 
-    orig_water_use %in% c("Domestic", "Municipal", "Water Quality") ~ "Domestic", 
-    orig_water_use %in% c("Recreational", "Snow Making") ~ "Nature" , 
-    orig_water_use %in% c("Mining", "Power", "Industrial", "Incidental Power", "Heat Control") ~ "Industrial"
-  )) %>%
+  filter(water_use != "other") %>%
+  mutate(water_use = case_when(
+    water_use %in% c("livestock", "irrigation") ~ "Agriculture",
+    water_use %in% c("environmental", "fish") ~ "Environment",
+    water_use == "industrial" ~ "Industrial",
+    water_use == "domestic" ~ "Domestic")) %>%
   drop_na() %>%
-  mutate(orig_water_use = factor(orig_water_use, levels = desired_order))
+  group_by(decade) %>%
+  arrange(decade, desc(cfs)) %>%
+  mutate(water_use = factor(water_use, levels = unique(water_use))) %>%
+  ungroup()
 
 
-ggplot(data = ca_rights_orig_use, 
-       aes(x = decade, y = cfs, fill = orig_water_use)) + 
+ggplot(data = ca_rights_use, 
+       aes(x = decade, y = cfs, fill = water_use)) + 
   geom_col(position = "dodge") + 
-  scale_fill_manual(values = orig_water_use_pal) + 
+  scale_fill_manual(values = water_use_pal) + 
   theme_minimal() + 
   labs(title = "Industrial uses are consistently appropriated the most water rights in California", 
        x = " ", 
        y = "Volume of Water Appropriated (CFS)", 
        fill = "Water Use") + 
   theme(
-    legend.position = "bottom"
-  )
+    legend.position = "bottom")
 
 ```
 
