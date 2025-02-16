@@ -13,20 +13,64 @@ library(lubridate)
 library(stringr)
 
 ca_rights <- read_csv(here("data", "california.csv"))
-
 ```
 
 
-```{r}
-water_use_pal <- c("Domestic" = "red", 
-                   "Environment" = "lightblue", 
-                   "Industrial" = "gray2", 
-                   "Agriculture" = "tan2")
+# Plot 1: Choropleth of water rights legal frameworks in the USA
+The purpose of this visualization is to show that legal frameworks for water rights in the US are different for each state. This provides context for why Plot 2 is important. 
 
-desired_order <- c("Industrial",
-                   "Domestic", 
-                   "Agriculture", 
-                   "Environment")
+```{r}
+library(sf)
+
+shapefile <- read_sf(here("data", 
+                          "shapefile", 
+                          "s_18mr25.shp")) 
+
+us_rights <- tibble(
+  NAME = c("Arizona", "Colorado", "Idaho", "Montana", "Nevada", "New Mexico", 
+            "Utah", "Wyoming", "Kansas", "North Dakota", "South Dakota", "Oregon", "Texas", 
+            "Washington", "Nebraska", "Oklahoma", "New Hampshire", "Vermont", "Rhode Island", 
+            "West Virginia", "Ohio", "Tennessee", "Missouri", "Louisiana", "Alabama", "Arkansas", 
+            "Connecticut", "Delaware", "New York", "New Jersey", "Maryland", "Illinois", 
+            "Indiana", "Iowa", "Kentucky", "Massachusetts", "Pennsylvania", "Mississippi", "Maine", "Michigan",
+            "Minnesota", "North Carolina", "South Carolina", "Georgia", "Florida", 
+            "Virginia", "Wisconsin", "California"),
+  legal_framework = c(rep("Prior appropriation", 16), 
+                        rep("Riparian", 31), 
+                        "Combination"))
+
+usa_states_joined <- left_join(shapefile, us_rights, by = "NAME") %>%
+  drop_na(legal_framework) 
+```
+
+```{r}
+legal_framework_pal <- c("Prior appropriation" = "#dbb3bc", 
+                         "Riparian" = "#93afce", 
+                         "Combination" = "#bf72fe") 
+
+ggplot() + 
+  geom_sf(data = usa_states_joined, 
+          aes(fill = legal_framework), 
+          color = "black", 
+          size = 1) + 
+  scale_fill_manual(values = legal_framework_pal) + 
+  theme_void() 
+  
+```
+
+
+
+
+
+# Plot 2: CA Water Rights Uses by Decade
+The purpose of this visualization is to show which water uses have priority over others. Due to the legal framework of water rights in CA (prior appropriation), older water rights are prioritized during times of water scarcity. 
+- add California to title of plot
+
+```{r}
+water_use_pal <- c("Domestic" = "#9b1b34", 
+                   "Environment" = "#93afce", 
+                   "Industrial" = "#4a4343", 
+                   "Agriculture" = "#d8a451")
 
 ca_rights_use <- ca_rights %>%
   clean_names() %>%
@@ -66,15 +110,24 @@ ggplot(data = ca_rights_use,
        aes(x = decade, y = cfs, fill = water_use)) + 
   geom_col(position = "dodge") + 
   scale_fill_manual(values = water_use_pal) + 
-  theme_minimal() + 
-  labs(title = "Industrial uses are consistently appropriated the most water rights in California", 
+  scale_y_continuous(labels = scales::label_number(accuracy = 1, scale = 0.001, suffix = "K"),
+                     expand = c(0,0)) +
+  theme_classic() + 
+  labs(title = "Older water rights are more senior and are prioritized when water is scarce", 
+       subtitle = "Most senior water rights are appropriated for industrial and domestic uses",
        x = " ", 
-       y = "Volume of Water Appropriated (CFS)", 
+       y = "Appropriated Water (CFS)", 
        fill = "Water Use") + 
   theme(
-    legend.position = "bottom")
+    legend.position = "bottom", 
+    
+    plot.title = element_text(face = "bold")
+  ) + 
+  coord_fixed(ratio = 0.00003)
 
 ```
 
 
+
+# Plot 3: Ranges of CFS for different uses 
 
