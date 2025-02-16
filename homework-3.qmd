@@ -13,6 +13,7 @@ library(lubridate)
 library(stringr)
 
 ca_rights <- read_csv(here("data", "california.csv"))
+ca_runoff <- read_csv(here("data", "annual-california-runoff.csv"))
 ```
 
 
@@ -129,5 +130,48 @@ ggplot(data = ca_rights_use,
 
 
 
-# Plot 3: Ranges of CFS for different uses 
+# Plot 3: Relative change in appropriated water volume and annual runoff 
+
+```{r}
+ca_rights_agg_prop <- ca_rights %>%
+  clean_names() %>%
+  select(priority_date, cfs) %>%
+  mutate(date = mdy(priority_date)) %>%
+  mutate(date = if_else(year(date) > 2023, date - years(100), date)) %>%
+  mutate(year = year(date))%>%
+  filter(year > 1939) %>%
+  filter(year < 2000) %>%
+  group_by(year) %>%
+  summarise(cfs = sum(cfs)) %>%
+  ungroup() %>%
+  arrange(year) %>%
+  mutate(agg_cfs = cumsum(cfs)) %>%
+  mutate(percent_growth = ((agg_cfs - lag(agg_cfs)) / lag(agg_cfs) * 100)) %>%
+  mutate(testing = agg_cfs / 17652.63)
+
+```
+
+```{r}
+runoff_pg <- ca_runoff %>%
+  clean_names() %>%
+  filter(category %in% c(1940:1999)) %>%
+  mutate(percent_growth = ((annual_runoff - lag(annual_runoff)) / lag(annual_runoff) * 100) + 72.9727210)
+```
+
+```{r}
+ggplot() + 
+  geom_line(data = ca_rights_agg_prop, 
+            aes(x = year, y = testing), color = "black") + 
+  geom_area(data = runoff_pg, 
+            aes(x = category, y = percent_growth),
+            fill = "lightblue", alpha = 0.5) + 
+  theme_minimal()
+```
+
+
+
+
+
+
+
 
