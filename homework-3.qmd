@@ -44,9 +44,9 @@ usa_states_joined <- left_join(shapefile, us_rights, by = "NAME") %>%
 ```
 
 ```{r}
-legal_framework_pal <- c("Prior appropriation" = "#dbb3bc", 
+legal_framework_pal <- c("Prior appropriation" = "#d8a451", 
                          "Riparian" = "#93afce", 
-                         "Combination" = "#bf72fe") 
+                         "Combination" = "#9b1b34") 
 
 ggplot() + 
   geom_sf(data = usa_states_joined, 
@@ -54,7 +54,9 @@ ggplot() +
           color = "black", 
           size = 1) + 
   scale_fill_manual(values = legal_framework_pal) + 
-  theme_void() 
+  theme_void() + 
+  labs(fill = "Legal Framework") +
+  theme(legend.position = "bottom")
   
 ```
 
@@ -113,16 +115,20 @@ ggplot(data = ca_rights_use,
   scale_y_continuous(labels = scales::label_number(accuracy = 1, scale = 0.001, suffix = "K"),
                      expand = c(0,0)) +
   theme_classic() + 
-  labs(title = "Older water rights are more senior and are prioritized when water is scarce", 
-       subtitle = "Most senior water rights are appropriated for industrial and domestic uses",
+  labs(subtitle = "Older water rights are more senior and are prioritized when water is scarce", 
+       title = "Most California water rights are appropriated for industrial and domestic use",
        x = " ", 
        y = "Appropriated Water (CFS)", 
-       fill = "Water Use") + 
+       fill = "Water Use",
+       caption = "Data Source: HarDWR - Cumulative Water Rights Curves (Lisk et al. 2023)") + 
   theme(
+    plot.title.position = "plot",
+    plot.title = element_text(face = "bold"),
+    plot.caption = element_text(hjust = 0.5),
+    
     legend.position = "bottom", 
     
-    plot.title = element_text(face = "bold")
-  ) + 
+    axis.text = element_text(color = "black")) + 
   coord_fixed(ratio = 0.00003)
 
 ```
@@ -138,7 +144,7 @@ ca_rights_ts <- ca_rights %>%
   select(priority_date, cfs, water_use) %>%
   mutate(date = mdy(priority_date)) %>%
   mutate(date = if_else(year(date) > 2023, date - years(100), date)) %>%
-  mutate(year = year(date))%>%
+  mutate(year = year(date)) %>%
   filter(year > 1929) %>%
   filter(year < 2000) %>%
   group_by(year, water_use) %>%
@@ -149,44 +155,21 @@ ca_rights_ts <- ca_rights %>%
     water_use %in% c("livestock", "irrigation") ~ "Agriculture",
     water_use %in% c("environmental", "fish") ~ "Environment",
     water_use == "industrial" ~ "Industrial",
-    water_use == "domestic" ~ "Domestic")) %>%
-  drop_na() 
+    water_use == "domestic" ~ "Domestic"
+  )) %>%
+  arrange(water_use, year) %>%  
+  group_by(water_use) %>%     
+  mutate(agg_cfs = cumsum(cfs)) %>%  
+  ungroup()
 
-ag <- ca_rights_ts %>%
-  filter(water_use == "Agriculture") %>%
-  mutate(agg_cfs = cumsum(cfs))
-
-env <- ca_rights_ts %>%
-  filter(water_use == "Environment") %>%
-  mutate(agg_cfs = cumsum(cfs))
-
-ind <- ca_rights_ts %>%
-  filter(water_use == "Industrial") %>%
-  mutate(agg_cfs = cumsum(cfs))
-
-dom <- ca_rights_ts %>%
-  filter(water_use == "Domestic") %>%
-  mutate(agg_cfs = cumsum(cfs))
 ```
+
 
 ```{r}
 ggplot() + 
-  geom_line(data = ag, 
-            mapping = aes(x = year, y = agg_cfs), 
-            color = "#d8a451", 
+  geom_line(data = ca_rights_ts, 
+            mapping = aes(x = year, y = agg_cfs, color = water_use), 
             linewidth = 1)+
-  geom_line(data = env, 
-            mapping =  aes(x = year, y = agg_cfs), 
-            color = "#93afce", 
-            linewidth = 1) +
-  geom_line(data = ind, 
-            mapping =  aes(x = year, y = agg_cfs), 
-            color = "#4a4343", 
-            linewidth = 1) +
-  geom_line(data = dom, 
-            mapping =  aes(x = year, y = agg_cfs), 
-            color = "#9b1b34", 
-            linewidth = 1) + 
   geom_hline(aes(yintercept = 36000), color = "lightblue", linetype = "dashed") + # max oroville dam cfs
   theme_classic() + 
   scale_y_continuous(expand = c(0,0),
@@ -194,9 +177,62 @@ ggplot() +
   scale_x_continuous(breaks = seq(min(ag$year), max(ag$year), by = 10), 
                      expand = c(0,0)) + 
   coord_fixed(ratio = 0.00008) + 
+  scale_color_manual(values = water_use_pal) +
   labs(y = "Appropriated Water (CFS)", 
-       x = " ")
+       x = " ") + 
+  annotate(
+    geom = "text", 
+    x = 1993, 
+    y = 415000,
+    label = "Industrial",
+    size = 3.5,
+    color = "#4a4343") + 
+  annotate(
+    geom = "text", 
+    x = 1993, 
+    y = 250000,
+    label = "Domestic",
+    size = 3.5,
+    color = "#9b1b34") + 
+  annotate(
+    geom = "text", 
+    x = 1985, 
+    y = 192000,
+    label = "Environment",
+    size = 3.5,
+    color = "#93afce") + 
+  annotate(
+    geom = "text", 
+    x = 1992, 
+    y = 158000,
+    label = "Agriculture",
+    size = 3.5,
+    color = "#d8a451") + 
+  annotate(
+    geom = "text", 
+    x = 1981, 
+    y = 55000,
+    label = "Maximum flow out of the Oroville Dam (36,000 CFS)",
+    size = 2.5,
+    color = "black") + 
+  labs(title = "Growth of CA Appropriated Water Rights (1930-1999) by Beneficial Use",
+       subtitle = "The Oroville Dam, the largest in the U.S. and the main reservoir of the State Water Project,\nserves as a reference for growing water appropriations, which have significantly increased\nparticularly for industrial use",
+       caption = "Data Source: HarDWR - Cumulative Water Rights Curves (Lisk et al. 2023)",
+       color = "Water Use") + 
+  theme(plot.title.position = "plot", 
+        plot.title = element_text(face = "bold"), 
+        plot.caption = element_text(hjust = 0.5),
+        legend.position = "bottom",
+        
+        axis.text = element_text(color = "black"), 
+        axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0))
+        )
 ```
+
+
+
+
+
 
 
 
