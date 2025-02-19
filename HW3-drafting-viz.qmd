@@ -99,7 +99,7 @@ ggplot() +
   scale_fill_manual(values = legal_framework_pal) + 
   theme_void() + 
   labs(fill = "Legal Framework") +
-  theme(legend.position = "bottom")
+  theme(legend.position = "top")
   
 ```
 
