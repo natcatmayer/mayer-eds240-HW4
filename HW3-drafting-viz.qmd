@@ -6,6 +6,8 @@ format:
     embed-resources: true
     toc: true
     code-fold: true
+    message: false
+    warning: false
 editor: visual
 ---
 
@@ -60,10 +62,12 @@ The purpose of this visualization is to show that legal frameworks for water rig
 ```{r}
 library(sf)
 
+# load shapefile of US
 shapefile <- read_sf(here("data", 
                           "shapefile", 
                           "s_18mr25.shp")) 
 
+# create df of legal frameworks for each state
 us_rights <- tibble(
   NAME = c("Arizona", "Colorado", "Idaho", "Montana", "Nevada", "New Mexico", 
             "Utah", "Wyoming", "Kansas", "North Dakota", "South Dakota", "Oregon", "Texas", 
@@ -77,6 +81,7 @@ us_rights <- tibble(
                         rep("Riparian", 31), 
                         "Combination"))
 
+# join legal frameworks to shapefile
 usa_states_joined <- left_join(shapefile, us_rights, by = "NAME") %>%
   drop_na(legal_framework) 
 ```
@@ -103,11 +108,13 @@ ggplot() +
 The purpose of this visualization is to show which water uses have priority over others. Due to the legal framework of water rights in CA (prior appropriation), older water rights are prioritized during times of water scarcity.
 
 ```{r}
+# create color palette for water uses
 water_use_pal <- c("Domestic" = "#9b1b34", 
                    "Environment" = "#93afce", 
                    "Industrial" = "#4a4343", 
                    "Agriculture" = "#d8a451")
 
+# group cfs by decade and water use
 ca_rights_use <- ca_rights %>%
   clean_names() %>%
   select(priority_date, cfs, water_use) %>%
@@ -141,7 +148,7 @@ ca_rights_use <- ca_rights %>%
   mutate(water_use = factor(water_use, levels = unique(water_use))) %>%
   ungroup()
 
-
+# create bar chart of appropriated water for each use by decade
 ggplot(data = ca_rights_use, 
        aes(x = decade, y = cfs, fill = water_use)) + 
   geom_col(position = "dodge") + 
@@ -170,6 +177,8 @@ ggplot(data = ca_rights_use,
 ## Plot 3: Relative change in appropriated water volume and annual runoff
 
 ```{r}
+
+# create a df of cumulative sum of appropriated cfs for each use by year
 ca_rights_ts <- ca_rights %>%
   clean_names() %>%
   select(priority_date, cfs, water_use) %>%
@@ -196,6 +205,7 @@ ca_rights_ts <- ca_rights %>%
 ```
 
 ```{r}
+# create line graph showing growth in annual appropriations of water by designated use
 ggplot() + 
   geom_line(data = ca_rights_ts, 
             mapping = aes(x = year, y = agg_cfs, color = water_use), 
