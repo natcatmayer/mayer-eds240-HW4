@@ -1,7 +1,11 @@
 ---
 title: "Homework #3"
 author: "Natalie Mayer"
-format: html
+format: 
+  html:
+    embed-resources: true
+    toc: true
+    code-fold: true
 editor: visual
 ---
 
@@ -15,9 +19,43 @@ library(stringr)
 ca_rights <- read_csv(here("data", "california.csv"))
 ```
 
+# Question 1
 
-# Plot 1: Choropleth of water rights legal frameworks in the USA
-The purpose of this visualization is to show that legal frameworks for water rights in the US are different for each state. This provides context for why Plot 2 is important. 
+I plan to pursue Option 1: Infographic.
+
+# Question 2
+
+My overarching question is "How does California's water rights system influence water availability and allocation across different sectors?". The three sub-questions are:
+
+1.  How does California's water rights legal framework compare to other states?
+
+2.  Which water use sectors hold the most senior (older) water rights?
+
+3.  How did appropriations for each sector grown between 1930-1999?
+
+# Question 3
+
+For the choropleth map showing legal water rights framework for each of the states in the U.S., I created my own dataframe with two categorical variables: State name and Legal framework. The textbook from ESM 225: Water Policy (A Twenty-First Century U.S. Water Policy by Juliet Christian-Smith and Peter H. Gleick) includes tables of what legal system is used to govern water rights appropriations in each state. I joined this to the National Weather Service's U.S. States and Territories shapefile for variables including: location (latitude, longitude) and shape of United States.
+
+For the bar chart, I used data from the Har-DWR Cumulative Water Rights Curves (Lisk et al. 2023) data set. Specifically, the variables I used were designated water use (waterUse), the rate of water appropriated (cfs), and the date the water right was appropriated (priorityDate). I summed the appropriated water (cfs) for each designated use (waterUse) by decade using (priorityDate) to show which sectors have more senior water rights in California.
+
+For the line graph, I used data from the Har-DWR Cumulative Water Rights Curves (Lisk et al. 2023) data set. Specifically, the variables I used were designated water use (waterUse), the rate of water appropriated (cfs), and the date the water right was appropriated (priorityDate). I calculated the aggregated sum of appropriated water (cfs) for each designated use (waterUse) for each year (priorityDate) to show how total amount of water appropriated has grown since 1930.
+
+# Question 4
+
+I want to borrow from this NY Times graphic on Sea ice area below the qualitative y-axis labels to represent flow rate quantities. ![](images/ny-times-sea-ice.png)
+
+I want to borrow from this choropleth of the US the placement of the legend on top to reduce viewer eye movement. ![](images/choropleth.png)
+
+# Question 5
+
+![](images/hand-drawing.jpeg)
+
+# Question 6
+
+## Plot 1: Choropleth of water rights legal frameworks in the USA
+
+The purpose of this visualization is to show that legal frameworks for water rights in the US are different for each state. This provides context for why Plot 2 is important.
 
 ```{r}
 library(sf)
@@ -60,13 +98,9 @@ ggplot() +
   
 ```
 
+## Plot 2: CA Water Rights Uses by Decade
 
-
-
-
-# Plot 2: CA Water Rights Uses by Decade
-The purpose of this visualization is to show which water uses have priority over others. Due to the legal framework of water rights in CA (prior appropriation), older water rights are prioritized during times of water scarcity. 
-- add California to title of plot
+The purpose of this visualization is to show which water uses have priority over others. Due to the legal framework of water rights in CA (prior appropriation), older water rights are prioritized during times of water scarcity.
 
 ```{r}
 water_use_pal <- c("Domestic" = "#9b1b34", 
@@ -133,10 +167,7 @@ ggplot(data = ca_rights_use,
 
 ```
 
-
-
-# Plot 3: Relative change in appropriated water volume and annual runoff 
-- need to add labels to each of the lines
+## Plot 3: Relative change in appropriated water volume and annual runoff
 
 ```{r}
 ca_rights_ts <- ca_rights %>%
@@ -164,7 +195,6 @@ ca_rights_ts <- ca_rights %>%
 
 ```
 
-
 ```{r}
 ggplot() + 
   geom_line(data = ca_rights_ts, 
@@ -174,7 +204,7 @@ ggplot() +
   theme_classic() + 
   scale_y_continuous(expand = c(0,0),
                      labels = scales::label_number(accuracy = 1, scale = 0.001, suffix = "K")) +
-  scale_x_continuous(breaks = seq(min(ag$year), max(ag$year), by = 10), 
+  scale_x_continuous(breaks = seq(min(ca_rights_ts$year), max(ca_rights_ts$year), by = 10), 
                      expand = c(0,0)) + 
   coord_fixed(ratio = 0.00008) + 
   scale_color_manual(values = water_use_pal) +
@@ -189,15 +219,15 @@ ggplot() +
     color = "#4a4343") + 
   annotate(
     geom = "text", 
-    x = 1993, 
-    y = 250000,
+    x = 1994, 
+    y = 255000,
     label = "Domestic",
     size = 3.5,
     color = "#9b1b34") + 
   annotate(
     geom = "text", 
-    x = 1985, 
-    y = 192000,
+    x = 1986, 
+    y = 190500,
     label = "Environment",
     size = 3.5,
     color = "#93afce") + 
@@ -229,16 +259,10 @@ ggplot() +
         )
 ```
 
+# Question 7
 
+a\) My biggest challenge is trying to provide a reference for the units of appropriated water in a way that a non-expert can understand without over-explaining. I tried to do this in Plot 3 by adding a horizontal line of the maximum outflow from the Oroville Dam, but I think instead I will add qualitative labels on the y-axis for some of the CFS quantities (such as in the sea ice example from the NY Times) that put into context how much water is appropriated for each use.
 
+b\) I have not used any extension packages yet, but I intend to customize the text using ggtext.
 
-
-
-
-
-
-
-
-
-
-
+c\) It would be useful to know if the graphs are communicating their intended purpose to an audience that are not experts in water rights legal frameworks, and if the color palettes and overall balance of the graphics are accessible and aesthetically pleasing.
