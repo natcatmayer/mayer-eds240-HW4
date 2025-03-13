@@ -99,10 +99,12 @@ ggplot() +
           size = 1) + 
   scale_fill_manual(values = legal_framework_pal) + 
   theme_void() + 
-  labs(fill = "Legal Framework", 
+  labs(fill = " ", 
        title = "California has a unique legal framework for governing water rights", 
        subtitle = "In 1914, California transitioned from a Riparian to Prior appropriation framework.\nPre-1914 water rights are the most senior and valuable water rights in the state") +
   theme(legend.position = "bottom", 
+        legend.text = element_text(size = 15, color = "black"),
+        
         plot.title = element_text(face = "bold"))
   
 ```
@@ -169,21 +171,23 @@ ggplot(data = ca_rights_use,
   scale_y_continuous(labels = scales::label_number(accuracy = 1, scale = 0.001, suffix = "K"),
                      expand = c(0,0)) +
   theme_classic() + 
-  labs(subtitle = "Older water rights are more senior and are prioritized when water is scarce", 
-       title = "Most California water rights are appropriated for <span style='color:#4a4343;'>industrial</span> and <span style='color:#9b1b34;'>domestic</span> use",
+  labs(title = "Most California water rights granted in the 1930s were<br>appropriated for <span style='color:#4a4343;'>industrial</span> and <span style='color:#9b1b34;'>domestic</span> use",
        x = " ", 
        y = "Appropriated Water (CFS)", 
-       fill = "Water Use",
+       fill = " ",
        caption = "Data Source: HarDWR - Cumulative Water Rights Curves (Lisk et al. 2023)") + 
   theme(
-    plot.title.position = "plot",
-    plot.title = element_markdown(face = "bold"),
+    plot.title = element_markdown(face = "bold", size = 16, , 
+                                hjust = 0, 
+                                margin = margin(0, 0, 0.5, 0, "cm")),
     plot.caption = element_text(hjust = 1, face = "italic"),
     
     legend.position = "bottom", 
+    legend.text = element_text(size = 13),
     
-    axis.text = element_text(color = "black")) + 
-  coord_fixed(ratio = 0.00003)
+    axis.text = element_text(color = "black"), 
+    
+    aspect.ratio = 0.333)
 
 ```
 
@@ -281,12 +285,11 @@ ggplot() +
     label = "Agriculture",
     size = 3.5,
     color = "#d8a451") + 
-  labs(title = "Growth of CA Appropriated Water Rights (1930-1999) by Beneficial Use",
-       subtitle = "Industrial water rights in California have the largest and fastest-growing appropriated flow,\nexceeding the average flow at the mouth of the Amazon River, the fastest river in the world.",
+  labs(title = "How much water was appropriated for each designated use\nin California between 1930 and 2000?",
        caption = "Data Source: HarDWR - Cumulative Water Rights Curves (Lisk et al. 2023)",
        color = "Water Use") + 
-  theme(plot.title.position = "plot", 
-        plot.title = element_text(face = "bold"), 
+  theme(plot.title = element_text(face = "bold", hjust = 0, 
+                                  margin = margin(0, 0, 0.5, 0, "cm")), 
         plot.caption = element_text(hjust = 1, face = "italic"),
         legend.position = "none",
         
